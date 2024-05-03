@@ -3,7 +3,7 @@ rdr3_warning 'I acknowledge that this is a prerelease build of RedM, and I am aw
 
 game 'rdr3'
 version '1.0'
-author 'YourgenAP'
+author 'VORP @YourgenAP'
 
 client_scripts {
     'client/client.lua'
@@ -23,8 +23,5 @@ shared_scripts {
 ---------------- Dependencies -------------------------------------------------------
 ---- What other scripts (if any) does your script depend on. REMOVE THIS IF NONE ----
 dependencies {
-    'vorp_core',
-    'vorp_inventory',
     'vorp_crafting',
-    'menuapi'
 }

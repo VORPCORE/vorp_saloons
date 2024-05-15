@@ -1,8 +1,6 @@
-local job = nil
-
 -----------------------------------------------------------------------------------------
 ---------------------------------UIPrompt------------------------------------------------
-UIPrompt = {}
+local UIPrompt = {}
 
 local promptGroup = GetRandomIntInRange(0, 0xffffff)
 
@@ -26,16 +24,7 @@ UIPrompt.initialize = function()
 end
 
 
------------------------------------------------------------------------------------------
----------------------------------PlayerSpawn---------------------------------------------
-RegisterNetEvent("vorp:SelectedCharacter")
-AddEventHandler("vorp:SelectedCharacter", function()
-    TriggerServerEvent("vorpSaloon:GetJobs")
-end)
-
------------------------------------------------------------------------------------------
----------------------------------BLIPS---------------------------------------------------
-function AddBlips()
+local function AddBlips()
     if Config.BlipsActive then
         for k, v in pairs(Config.Locations) do
             Config.Locations[k].BlipHandler = Citizen.InvokeNative(0x554D9D53F696D002, 1664425300, v.Blipcoords.x,
@@ -53,46 +42,32 @@ function AddBlips()
     end
 end
 
-function RemoveBlips()
-    for k, v in pairs(Config.Locations) do
-        RemoveBlip(v.BlipHandler)
-    end
-end
 
------------------------------------------------------------------------------------------
----------------------------------JOB HANDLER---------------------------------------------
-RegisterNetEvent("vorpSaloon:UpdateJob")
-AddEventHandler("vorpSaloon:UpdateJob", function(rjob)
-    job = rjob
-end)
-
------------------------------------------------------------------------------------------
----------------------------------INVENTORIES---------------------------------------------
 Citizen.CreateThread(function()
+    repeat Wait(1000) until LocalPlayer.state.IsInSession
     AddBlips()
     UIPrompt.initialize()
 
-    while job == nil do
-        Wait(100)
-    end
-
+    local job = LocalPlayer.state.Character.Job
     while true do
-        Wait(1)
-        
-        for index, location in pairs(Config.Locations) do
-            if job == location.Job then
-                local playerPosition = GetEntityCoords(GetPlayerPed(PlayerId()))
-                local InventoryPosition = vector3(location.StoragePosition.x, location.StoragePosition.y,
-                    location.StoragePosition.z)
-                local dist = #(playerPosition - InventoryPosition)
+        local sleep = 1000
 
-                if dist < 1.0 then
+
+        for index, location in pairs(Config.Locations) do
+            local playerPosition = GetEntityCoords(GetPlayerPed(PlayerId()))
+            local InventoryPosition = vector3(location.StoragePosition.x, location.StoragePosition.y, location.StoragePosition.z)
+            local dist = #(playerPosition - InventoryPosition)
+
+            if dist < 1.5 then
+                sleep = 0
+                if job == location.Job then
                     UIPrompt.activate(_U("OpenInventory") .. location.Name)
                     if Citizen.InvokeNative(0xC92AC953F0A982AE, SaloonPrompt) then
-                        TriggerServerEvent("vorpSaloon:GetInventory", location.Job)
+                        TriggerServerEvent("vorpSaloon:GetInventory", location)
                     end
                 end
             end
         end
+        Wait(sleep)
     end
 end)

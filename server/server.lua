@@ -1,37 +1,37 @@
-VORPcore = {}
-local VORPInv = {}
+local Core = exports.vorp_core:GetCore()
 
-VORPInv = exports.vorp_inventory:vorp_inventoryApi()
-
-TriggerEvent("getCore", function(core)
-    VORPcore = core
-end)
-
-RegisterNetEvent("vorpSaloon:GetJobs")
-AddEventHandler("vorpSaloon:GetJobs", function()
+RegisterNetEvent("vorpSaloon:GetInventory", function(location)
     local _source = source
-    local Character = VORPcore.getUser(_source).getUsedCharacter
+    local id = location.Job
+    local Character = Core.getUser(_source).getUsedCharacter
     local job = Character.job
-    TriggerClientEvent("vorpSaloon:UpdateJob", _source, job)
-end)
-
-RegisterNetEvent("vorpSaloon:GetInventory")
-AddEventHandler("vorpSaloon:GetInventory", function(id)
-    local _source = source
-    VORPInv.OpenInv(_source, id)
-end)
-
-Citizen.CreateThread(function ()
-    for k, loc in pairs(Config.Locations) do
-        VORPInv.registerInventory(loc.Job, loc.Name, 5000, false, true, true)
+    if job == id then
+        exports.vorp_inventory:openInventory(_source, id)
     end
+end)
 
+CreateThread(function()
+    for k, loc in pairs(Config.Locations) do
+        local data = {
+            id = loc.Job,
+            name = loc.Name,
+            limit = 5000,
+            acceptWeapons = false,
+            shared = true,
+            ignoreItemStackLimit = true,
+            whitelistItems = false,
+            UsePermissions = false,
+            UseBlackList = false,
+            whitelistWeapons = false
+        }
+        exports.vorp_inventory:registerInventory(data)
+    end
+end)
+
+AddEventHandler("vorp:SelectedCharacter", function(source)
+    -- this makes no sense, why not adding it to the script it self?
     for key, location in pairs(Config.Locations) do
         local loc = location.CraftLocation
-        TriggerEvent("vorp:AddCraftLocation", loc)
-    end
-
-    for ind, meal in pairs(Config.Meals) do
-        TriggerEvent("vorp:AddRecipes", meal)
+        TriggerClientEvent("vorp:AddCraftLocation", source, loc)
     end
 end)
